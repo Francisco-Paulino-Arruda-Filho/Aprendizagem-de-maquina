@@ -1,14 +1,13 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[ ]:
+# In[284]:
 
 
 import numpy as np
 import matplotlib.pyplot as plt  
 from collections import Counter
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.model_selection import KFold
 import pandas as pd 
 
 
@@ -16,7 +15,7 @@ import pandas as pd
 
 # ### Funções auxiliares
 
-# In[50]:
+# In[285]:
 
 
 class StandardScaler:
@@ -32,36 +31,58 @@ class StandardScaler:
         return self.transform(X)
 
 
-# In[51]:
+# In[286]:
+
+
+class StratifiedKFold:
+    def __init__(self, n_splits=10, shuffle=True, random_state=None):
+        self.n_splits = n_splits
+        self.shuffle = shuffle
+        self.random_state = random_state
+
+    def split(self, X, y):
+        np.random.seed(self.random_state)
+
+        classes = np.unique(y)
+        class_indices = {}
+
+        for c in classes:
+            idx = np.where(y == c)[0]
+            if self.shuffle:
+                np.random.shuffle(idx)
+            class_indices[c] = idx
+
+        class_folds = {}
+        for c, idx in class_indices.items():
+            class_folds[c] = np.array_split(idx, self.n_splits)
+
+        for i in range(self.n_splits):
+            test_idx = []
+            train_idx = []
+
+            for c in classes:
+                test_idx.extend(class_folds[c][i])
+                for j in range(self.n_splits):
+                    if j != i:
+                        train_idx.extend(class_folds[c][j])
+
+            yield np.array(train_idx), np.array(test_idx)
+
+
+# In[287]:
 
 
 kc2 = np.loadtxt("kc2.csv", delimiter=",", skiprows=1)
 
 
-# In[52]:
-
-
-def train_test_split(X, y, test_size=0.2, seed=42):
-    n = X.shape[0]
-    indices = np.arange(n)
-    np.random.seed(seed)
-    np.random.shuffle(indices)
-
-    split = int(n * (1 - test_size))
-    train_idx = indices[:split]
-    test_idx = indices[split:]
-
-    return X[train_idx], X[test_idx], y[train_idx], y[test_idx]
-
-
-# In[53]:
+# In[289]:
 
 
 def euclidean_distance(a, b):
     return np.sqrt(np.sum((a - b) ** 2))
 
 
-# In[54]:
+# In[290]:
 
 
 def mahalanobis_distance(a, b, VI):
@@ -69,7 +90,7 @@ def mahalanobis_distance(a, b, VI):
     return np.sqrt(np.dot(np.dot(diff.T, VI), diff))
 
 
-# In[55]:
+# In[291]:
 
 
 def confusion_matrix_elements(y_true, y_pred):
@@ -81,7 +102,7 @@ def confusion_matrix_elements(y_true, y_pred):
     return TP, TN, FP, FN
 
 
-# In[56]:
+# In[292]:
 
 
 def accuracy(y_true, y_pred):
@@ -89,7 +110,7 @@ def accuracy(y_true, y_pred):
     return (TP + TN) / (TP + TN + FP + FN)
 
 
-# In[57]:
+# In[293]:
 
 
 def precision(y_true, y_pred):
@@ -99,7 +120,7 @@ def precision(y_true, y_pred):
     return TP / (TP + FP)
 
 
-# In[58]:
+# In[294]:
 
 
 def recall(y_true, y_pred):
@@ -109,7 +130,7 @@ def recall(y_true, y_pred):
     return TP / (TP + FN)
 
 
-# In[59]:
+# In[295]:
 
 
 def f1_score_manual(y_true, y_pred):
@@ -121,7 +142,7 @@ def f1_score_manual(y_true, y_pred):
     return 2 * (p * r) / (p + r)
 
 
-# In[60]:
+# In[296]:
 
 
 X = kc2[:, :21]
@@ -132,7 +153,7 @@ y = y.astype(int)
 
 # ### Letra A
 
-# In[61]:
+# In[297]:
 
 
 class KNN:
@@ -146,7 +167,7 @@ class KNN:
         
         if self.distance == 'mahalanobis':
             cov_matrix = np.cov(X.T)
-            self.VI = np.linalg.inv(cov_matrix)
+            self.VI = np.linalg.pinv(cov_matrix)
     
     def _distance(self, a, b):
         if self.distance == 'euclidean':
@@ -175,13 +196,13 @@ class KNN:
 
 # ### Letra B
 
-# In[ ]:
+# In[298]:
 
 
 def evaluate_model(model, X, y, kf):
     accs, precs, recs, f1s = [], [], [], []
     
-    for train_idx, test_idx in kf.split(X):
+    for train_idx, test_idx in kf.split(X, y):
         X_train, X_test = X[train_idx], X[test_idx]
         y_train, y_test = y[train_idx], y[test_idx]
 
@@ -209,15 +230,15 @@ def evaluate_model(model, X, y, kf):
     }
 
 
-# In[64]:
+# In[299]:
 
 
-kf = KFold(n_splits=10, shuffle=True, random_state=42)
+kf = StratifiedKFold(n_splits=10, shuffle=True, random_state=42)
 
 results = {}
 
 
-# In[65]:
+# In[300]:
 
 
 configs = [
@@ -228,7 +249,7 @@ configs = [
 ]
 
 
-# In[66]:
+# In[301]:
 
 
 for name, model in configs:
@@ -236,16 +257,16 @@ for name, model in configs:
     results[name] = evaluate_model(model, X, y, kf)
 
 
-# In[67]:
+# In[302]:
 
 
 tree_configs = [
-    ("DecisionTree_gini", DecisionTreeClassifier(criterion='gini')),
-    ("DecisionTree_entropy", DecisionTreeClassifier(criterion='entropy')),
+    ("DecisionTree_gini", DecisionTreeClassifier(criterion='gini', random_state=42)),
+    ("DecisionTree_entropy", DecisionTreeClassifier(criterion='entropy', random_state=42)),
 ]
 
 
-# In[68]:
+# In[303]:
 
 
 for name, model in tree_configs:
@@ -253,14 +274,14 @@ for name, model in tree_configs:
     results[name] = evaluate_model(model, X, y, kf)
 
 
-# In[72]:
+# In[304]:
 
 
 df_results = pd.DataFrame(results).T
 print(df_results)
 
 
-# In[73]:
+# In[305]:
 
 
 df_plot = df_results[[
@@ -278,4 +299,17 @@ plt.xticks(rotation=45)
 plt.grid()
 plt.tight_layout()
 plt.show()
+
+
+# In[306]:
+
+
+df_results.sort_values(by="f1_mean", ascending=False)
+
+
+# In[307]:
+
+
+best_model = df_results["f1_mean"].idxmax()
+print("Melhor modelo:", best_model)
 
