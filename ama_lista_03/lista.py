@@ -1,14 +1,15 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[49]:
+# In[ ]:
 
 
 import numpy as np
 import matplotlib.pyplot as plt  
-from typing import Counter
+from collections import Counter
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import KFold
+import pandas as pd 
 
 
 # # Questão 01
@@ -174,7 +175,7 @@ class KNN:
 
 # ### Letra B
 
-# In[62]:
+# In[ ]:
 
 
 def evaluate_model(model, X, y, kf):
@@ -183,6 +184,10 @@ def evaluate_model(model, X, y, kf):
     for train_idx, test_idx in kf.split(X):
         X_train, X_test = X[train_idx], X[test_idx]
         y_train, y_test = y[train_idx], y[test_idx]
+
+        scaler = StandardScaler()
+        X_train = scaler.fit_transform(X_train)
+        X_test = scaler.transform(X_test)
         
         model.fit(X_train, y_train)
         y_pred = model.predict(X_test)
@@ -204,7 +209,7 @@ def evaluate_model(model, X, y, kf):
     }
 
 
-# In[ ]:
+# In[64]:
 
 
 kf = KFold(n_splits=10, shuffle=True, random_state=42)
@@ -212,7 +217,7 @@ kf = KFold(n_splits=10, shuffle=True, random_state=42)
 results = {}
 
 
-# In[ ]:
+# In[65]:
 
 
 configs = [
@@ -223,7 +228,7 @@ configs = [
 ]
 
 
-# In[ ]:
+# In[66]:
 
 
 for name, model in configs:
@@ -231,7 +236,7 @@ for name, model in configs:
     results[name] = evaluate_model(model, X, y, kf)
 
 
-# In[ ]:
+# In[67]:
 
 
 tree_configs = [
@@ -240,10 +245,37 @@ tree_configs = [
 ]
 
 
-# In[ ]:
+# In[68]:
 
 
 for name, model in tree_configs:
     print(f"Rodando: {name}")
     results[name] = evaluate_model(model, X, y, kf)
+
+
+# In[72]:
+
+
+df_results = pd.DataFrame(results).T
+print(df_results)
+
+
+# In[73]:
+
+
+df_plot = df_results[[
+    "accuracy_mean",
+    "precision_mean",
+    "recall_mean",
+    "f1_mean"
+]]
+
+df_plot.plot(kind="bar")
+
+plt.title("Comparação de Modelos")
+plt.ylabel("Score")
+plt.xticks(rotation=45)
+plt.grid()
+plt.tight_layout()
+plt.show()
 
