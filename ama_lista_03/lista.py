@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[284]:
+# In[ ]:
 
 
 import numpy as np
@@ -15,7 +15,7 @@ import pandas as pd
 
 # ### Funções auxiliares
 
-# In[285]:
+# In[332]:
 
 
 class StandardScaler:
@@ -31,7 +31,7 @@ class StandardScaler:
         return self.transform(X)
 
 
-# In[286]:
+# In[333]:
 
 
 class StratifiedKFold:
@@ -69,20 +69,20 @@ class StratifiedKFold:
             yield np.array(train_idx), np.array(test_idx)
 
 
-# In[287]:
+# In[334]:
 
 
 kc2 = np.loadtxt("kc2.csv", delimiter=",", skiprows=1)
 
 
-# In[289]:
+# In[335]:
 
 
 def euclidean_distance(a, b):
     return np.sqrt(np.sum((a - b) ** 2))
 
 
-# In[290]:
+# In[336]:
 
 
 def mahalanobis_distance(a, b, VI):
@@ -90,7 +90,7 @@ def mahalanobis_distance(a, b, VI):
     return np.sqrt(np.dot(np.dot(diff.T, VI), diff))
 
 
-# In[291]:
+# In[337]:
 
 
 def confusion_matrix_elements(y_true, y_pred):
@@ -102,7 +102,7 @@ def confusion_matrix_elements(y_true, y_pred):
     return TP, TN, FP, FN
 
 
-# In[292]:
+# In[338]:
 
 
 def accuracy(y_true, y_pred):
@@ -110,7 +110,7 @@ def accuracy(y_true, y_pred):
     return (TP + TN) / (TP + TN + FP + FN)
 
 
-# In[293]:
+# In[339]:
 
 
 def precision(y_true, y_pred):
@@ -120,7 +120,7 @@ def precision(y_true, y_pred):
     return TP / (TP + FP)
 
 
-# In[294]:
+# In[340]:
 
 
 def recall(y_true, y_pred):
@@ -130,10 +130,10 @@ def recall(y_true, y_pred):
     return TP / (TP + FN)
 
 
-# In[295]:
+# In[341]:
 
 
-def f1_score_manual(y_true, y_pred):
+def f1_score(y_true, y_pred):
     p = precision(y_true, y_pred)
     r = recall(y_true, y_pred)
     
@@ -142,7 +142,7 @@ def f1_score_manual(y_true, y_pred):
     return 2 * (p * r) / (p + r)
 
 
-# In[296]:
+# In[ ]:
 
 
 X = kc2[:, :21]
@@ -153,7 +153,7 @@ y = y.astype(int)
 
 # ### Letra A
 
-# In[297]:
+# In[343]:
 
 
 class KNN:
@@ -196,7 +196,7 @@ class KNN:
 
 # ### Letra B
 
-# In[298]:
+# In[344]:
 
 
 def evaluate_model(model, X, y, kf):
@@ -216,7 +216,7 @@ def evaluate_model(model, X, y, kf):
         accs.append(accuracy(y_test, y_pred))
         precs.append(precision(y_test, y_pred))
         recs.append(recall(y_test, y_pred))
-        f1s.append(f1_score_manual(y_test, y_pred))
+        f1s.append(f1_score(y_test, y_pred))
     
     return {
         "accuracy_mean": np.mean(accs),
@@ -230,7 +230,7 @@ def evaluate_model(model, X, y, kf):
     }
 
 
-# In[299]:
+# In[345]:
 
 
 kf = StratifiedKFold(n_splits=10, shuffle=True, random_state=42)
@@ -238,7 +238,7 @@ kf = StratifiedKFold(n_splits=10, shuffle=True, random_state=42)
 results = {}
 
 
-# In[300]:
+# In[346]:
 
 
 configs = [
@@ -249,7 +249,7 @@ configs = [
 ]
 
 
-# In[301]:
+# In[347]:
 
 
 for name, model in configs:
@@ -257,7 +257,7 @@ for name, model in configs:
     results[name] = evaluate_model(model, X, y, kf)
 
 
-# In[302]:
+# In[348]:
 
 
 tree_configs = [
@@ -266,7 +266,7 @@ tree_configs = [
 ]
 
 
-# In[303]:
+# In[349]:
 
 
 for name, model in tree_configs:
@@ -274,14 +274,14 @@ for name, model in tree_configs:
     results[name] = evaluate_model(model, X, y, kf)
 
 
-# In[304]:
+# In[350]:
 
 
 df_results = pd.DataFrame(results).T
-print(df_results)
+print(df_results.round(4))
 
 
-# In[305]:
+# In[351]:
 
 
 df_plot = df_results[[
@@ -301,13 +301,13 @@ plt.tight_layout()
 plt.show()
 
 
-# In[306]:
+# In[352]:
 
 
 df_results.sort_values(by="f1_mean", ascending=False)
 
 
-# In[307]:
+# In[353]:
 
 
 best_model = df_results["f1_mean"].idxmax()
