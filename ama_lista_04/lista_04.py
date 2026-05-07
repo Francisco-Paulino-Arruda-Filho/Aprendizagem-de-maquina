@@ -1,15 +1,14 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[188]:
+# In[43]:
 
 
 import numpy as np
 import matplotlib.pyplot as plt
-import pandas as pd
 
 
-# In[189]:
+# In[44]:
 
 
 concrete = np.loadtxt("concrete.csv", delimiter=",", skiprows=1)
@@ -18,7 +17,7 @@ X = concrete[:, :8]
 y = concrete[:, 8]
 
 
-# In[190]:
+# In[45]:
 
 
 def train_test_split(X, y, test_size=0.2, random_state=42):
@@ -44,7 +43,7 @@ def train_test_split(X, y, test_size=0.2, random_state=42):
     return X_train, X_test, y_train, y_test
 
 
-# In[191]:
+# In[46]:
 
 
 class StandardScaler:
@@ -67,7 +66,7 @@ class StandardScaler:
         return self.transform(X)
 
 
-# In[192]:
+# In[47]:
 
 
 def rmse(y_true, y_pred):
@@ -77,14 +76,14 @@ def rmse(y_true, y_pred):
     return np.sqrt(np.mean((y_true - y_pred) ** 2))
 
 
-# In[193]:
+# In[48]:
 
 
 def mae(y_true, y_pred):
     return np.mean(np.abs(y_true - y_pred))
 
 
-# In[194]:
+# In[49]:
 
 
 def mre(y_true, y_pred):
@@ -96,7 +95,7 @@ def mre(y_true, y_pred):
 
 # # Questão 1
 
-# In[195]:
+# In[50]:
 
 
 class MLP:
@@ -235,7 +234,7 @@ class MLP:
         return self.forward(X)
 
 
-# In[196]:
+# In[51]:
 
 
 X_temp, X_test, y_temp, y_test = train_test_split(
@@ -253,7 +252,7 @@ X_train, X_val, y_train, y_val = train_test_split(
 )
 
 
-# In[197]:
+# In[52]:
 
 
 scaler = StandardScaler()
@@ -262,7 +261,7 @@ X_val = scaler.transform(X_val)
 X_test = scaler.transform(X_test)
 
 
-# In[198]:
+# In[53]:
 
 
 y_train = y_train.reshape(-1, 1)
@@ -270,7 +269,7 @@ y_val = y_val.reshape(-1, 1)
 y_test = y_test.reshape(-1, 1)
 
 
-# In[199]:
+# In[54]:
 
 
 hidden_options = [10, 20, 30]
@@ -281,7 +280,7 @@ best_hidden = None
 best_lr = None
 
 
-# In[200]:
+# In[55]:
 
 
 for hidden_size in hidden_options:
@@ -324,7 +323,7 @@ for hidden_size in hidden_options:
             best_lr = lr
 
 
-# In[201]:
+# In[56]:
 
 
 print("\nMelhores hiperparâmetros:")
@@ -335,7 +334,7 @@ print("Best Validation RMSE:", best_rmse)
 
 # ### Letra B
 
-# In[202]:
+# In[57]:
 
 
 y_train_pred = best_model.predict(X_train)
@@ -343,7 +342,7 @@ y_train_pred = best_model.predict(X_train)
 y_test_pred = best_model.predict(X_test)
 
 
-# In[203]:
+# In[58]:
 
 
 y_val_pred = best_model.predict(X_val)
@@ -357,7 +356,7 @@ print("MAE :", mae(y_val, y_val_pred))
 print("MRE :", mre(y_val, y_val_pred))
 
 
-# In[204]:
+# In[59]:
 
 
 print("\n==============================")
@@ -369,7 +368,7 @@ print("MAE :", mae(y_train, y_train_pred))
 print("MRE :", mre(y_train, y_train_pred))
 
 
-# In[205]:
+# In[60]:
 
 
 print("\n==============================")
@@ -381,7 +380,7 @@ print("MAE :", mae(y_test, y_test_pred))
 print("MRE :", mre(y_test, y_test_pred))
 
 
-# In[206]:
+# In[61]:
 
 
 plt.figure(figsize=(10, 6))
@@ -411,7 +410,7 @@ plt.show()
 
 # # Questão 02
 
-# In[207]:
+# In[62]:
 
 
 vehicle = np.loadtxt("vehicle.csv", delimiter=",", skiprows=1)
@@ -420,69 +419,95 @@ X = vehicle[:, :18]
 y = vehicle[:, 18]
 
 
-# In[208]:
-
-
-def confusion_matrix_elements(y_true, y_pred):
-    TP = np.sum((y_true == 1) & (y_pred == 1))
-    TN = np.sum((y_true == 0) & (y_pred == 0))
-    FP = np.sum((y_true == 0) & (y_pred == 1))
-    FN = np.sum((y_true == 1) & (y_pred == 0))
-    
-    return TP, TN, FP, FN
-
-
-# In[209]:
+# In[64]:
 
 
 def accuracy_score(y_true, y_pred):
-    TP, TN, FP, FN = confusion_matrix_elements(y_true, y_pred)
-    return (TP + TN) / (TP + TN + FP + FN)
+
+    return np.mean(y_true == y_pred)
 
 
-# In[210]:
+# In[65]:
 
 
-def precision_score(y_true, y_pred):
-    TP, TN, FP, FN = confusion_matrix_elements(y_true, y_pred)
-    if (TP + FP) == 0:
+def precision_score_macro(y_true, y_pred):
+
+    classes = np.unique(y_true)
+
+    precisions = []
+
+    for cls in classes:
+
+        TP = np.sum((y_true == cls) & (y_pred == cls))
+
+        FP = np.sum((y_true != cls) & (y_pred == cls))
+
+        if TP + FP == 0:
+            precisions.append(0)
+        else:
+            precisions.append(TP / (TP + FP))
+
+    return np.mean(precisions)
+
+
+# In[66]:
+
+
+def recall_score_macro(y_true, y_pred):
+
+    classes = np.unique(y_true)
+
+    recalls = []
+
+    for cls in classes:
+
+        TP = np.sum((y_true == cls) & (y_pred == cls))
+
+        FN = np.sum((y_true == cls) & (y_pred != cls))
+
+        if TP + FN == 0:
+            recalls.append(0)
+        else:
+            recalls.append(TP / (TP + FN))
+
+    return np.mean(recalls)
+
+
+# In[67]:
+
+
+def f1_score_macro(y_true, y_pred):
+
+    precision = precision_score_macro(y_true, y_pred)
+
+    recall = recall_score_macro(y_true, y_pred)
+
+    if precision + recall == 0:
         return 0
-    return TP / (TP + FP)
+
+    return 2 * (precision * recall) / (precision + recall)
 
 
-# In[211]:
+# In[68]:
 
 
-def recall_score(y_true, y_pred):
-    TP, TN, FP, FN = confusion_matrix_elements(y_true, y_pred)
-    if (TP + FN) == 0:
-        return 0
-    return TP / (TP + FN)
+def confusion_matrix_multiclass(y_true, y_pred, num_classes):
 
+    matrix = np.zeros(
+        (num_classes, num_classes),
+        dtype=int
+    )
 
-# In[212]:
+    for t, p in zip(y_true, y_pred):
 
+        matrix[t][p] += 1
 
-def f1_score(y_true, y_pred):
-    p = precision_score(y_true, y_pred)
-    r = recall_score(y_true, y_pred)
-
-    if (p + r) == 0:
-        return 0
-    return 2 * (p * r) / (p + r)
-
-
-# In[213]:
-
-
-def confusion_matrix(y_true, y_pred):
-    TP, TN, FP, FN = confusion_matrix_elements(y_true, y_pred)
-    return np.array([[TP, FP], [FN, TN]])
+    return matrix
 
 
 # ### Letra A
 
-# In[214]:
+# In[69]:
 
 
 vehicle = np.loadtxt(
@@ -496,7 +521,7 @@ X = vehicle[:, :18].astype(float)
 y = vehicle[:, 18]
 
 
-# In[215]:
+# In[70]:
 
 
 classes = np.unique(y)
@@ -514,7 +539,7 @@ y = np.array([class_to_index[label] for label in y])
 num_classes = len(classes)
 
 
-# In[216]:
+# In[71]:
 
 
 def one_hot(y, num_classes):
@@ -526,7 +551,7 @@ def one_hot(y, num_classes):
     return onehot
 
 
-# In[217]:
+# In[72]:
 
 
 class MLPClassifier:
@@ -743,7 +768,7 @@ class MLPClassifier:
         return np.argmax(probs, axis=1)
 
 
-# In[218]:
+# In[73]:
 
 
 X_temp, X_test, y_temp, y_test = train_test_split(
@@ -761,7 +786,7 @@ X_train, X_val, y_train, y_val = train_test_split(
 )
 
 
-# In[219]:
+# In[74]:
 
 
 scaler = StandardScaler()
@@ -779,7 +804,7 @@ y_val_onehot = one_hot(y_val, num_classes)
 y_test_onehot = one_hot(y_test, num_classes)
 
 
-# In[220]:
+# In[75]:
 
 
 hidden_options = [10, 20, 30]
@@ -795,7 +820,7 @@ best_hidden = None
 best_lr = None
 
 
-# In[221]:
+# In[ ]:
 
 
 for hidden_size in hidden_options:
@@ -847,7 +872,7 @@ for hidden_size in hidden_options:
             best_lr = lr
 
 
-# In[222]:
+# In[77]:
 
 
 print("\n===================================")
@@ -863,7 +888,7 @@ print("Best Validation Accuracy:", best_acc)
 
 # ### Letra B
 
-# In[223]:
+# In[78]:
 
 
 y_train_pred = best_model.predict(X_train)
@@ -873,36 +898,113 @@ y_val_pred = best_model.predict(X_val)
 y_test_pred = best_model.predict(X_test)
 
 
-# In[224]:
+# In[79]:
 
 
 def print_metrics(y_true, y_pred, name):
+
     print("\n==============================")
     print(name)
     print("==============================")
 
-    print("Accuracy :", accuracy_score(y_true, y_pred))
-    print("Precision:", precision_score(y_true, y_pred))
-    print("Recall   :", recall_score(y_true, y_pred))
-    print("F1 Score :", f1_score(y_true, y_pred))
+    print(
+        "Accuracy:",
+        accuracy_score(y_true, y_pred)
+    )
+
+    print(
+        "Precision Macro:",
+        precision_score_macro(y_true, y_pred)
+    )
+
+    print(
+        "Recall Macro:",
+        recall_score_macro(y_true, y_pred)
+    )
+
+    print(
+        "F1-score Macro:",
+        f1_score_macro(y_true, y_pred)
+    )
 
 
-# In[225]:
+# In[ ]:
 
 
-cm = confusion_matrix(
-    y_test,
-    y_test_pred
+print_metrics(
+    y_train,
+    y_train_pred,
+    "TREINO"
 )
 
-print("\n==============================")
-print("MATRIZ DE CONFUSÃO")
-print("==============================")
+print_metrics(
+    y_val,
+    y_val_pred,
+    "VALIDAÇÃO"
+)
 
-print(cm)
+print_metrics(
+    y_test,
+    y_test_pred,
+    "TESTE"
+)
 
 
-# In[226]:
+# In[81]:
+
+
+cm = confusion_matrix_multiclass(
+    y_test,
+    y_test_pred,
+    num_classes
+)
+
+
+# In[82]:
+
+
+plt.figure(figsize=(8, 6))
+
+plt.imshow(cm, interpolation='nearest')
+
+plt.title("Matriz de Confusão")
+
+plt.colorbar()
+
+tick_marks = np.arange(num_classes)
+
+plt.xticks(
+    tick_marks,
+    classes,
+    rotation=45
+)
+
+plt.yticks(
+    tick_marks,
+    classes
+)
+
+for i in range(num_classes):
+    for j in range(num_classes):
+
+        plt.text(
+            j,
+            i,
+            str(cm[i, j]),
+            ha='center',
+            va='center'
+        )
+
+plt.xlabel("Classe Predita")
+
+plt.ylabel("Classe Real")
+
+plt.tight_layout()
+
+plt.show()
+
+
+# In[83]:
 
 
 plt.figure(figsize=(10, 6))
