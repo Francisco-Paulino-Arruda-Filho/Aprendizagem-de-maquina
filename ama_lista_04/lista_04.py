@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[43]:
+# In[1]:
 
 
 import numpy as np
 import matplotlib.pyplot as plt
 
 
-# In[44]:
+# In[2]:
 
 
 concrete = np.loadtxt("concrete.csv", delimiter=",", skiprows=1)
@@ -17,7 +17,7 @@ X = concrete[:, :8]
 y = concrete[:, 8]
 
 
-# In[45]:
+# In[3]:
 
 
 def train_test_split(X, y, test_size=0.2, random_state=42):
@@ -43,7 +43,7 @@ def train_test_split(X, y, test_size=0.2, random_state=42):
     return X_train, X_test, y_train, y_test
 
 
-# In[46]:
+# In[4]:
 
 
 class StandardScaler:
@@ -66,7 +66,7 @@ class StandardScaler:
         return self.transform(X)
 
 
-# In[47]:
+# In[5]:
 
 
 def rmse(y_true, y_pred):
@@ -76,26 +76,27 @@ def rmse(y_true, y_pred):
     return np.sqrt(np.mean((y_true - y_pred) ** 2))
 
 
-# In[48]:
+# In[6]:
 
 
 def mae(y_true, y_pred):
     return np.mean(np.abs(y_true - y_pred))
 
 
-# In[49]:
+# In[7]:
 
 
 def mre(y_true, y_pred):
     mask = y_true != 0
     return np.mean(
-        (y_true[mask] - y_pred[mask]) / y_true[mask]
+        np.abs(y_true[mask] - y_pred[mask]) /
+        np.abs(y_true[mask])
     )
 
 
 # # Questão 1
 
-# In[50]:
+# In[8]:
 
 
 class MLP:
@@ -234,7 +235,7 @@ class MLP:
         return self.forward(X)
 
 
-# In[51]:
+# In[9]:
 
 
 X_temp, X_test, y_temp, y_test = train_test_split(
@@ -252,7 +253,7 @@ X_train, X_val, y_train, y_val = train_test_split(
 )
 
 
-# In[52]:
+# In[10]:
 
 
 scaler = StandardScaler()
@@ -261,7 +262,7 @@ X_val = scaler.transform(X_val)
 X_test = scaler.transform(X_test)
 
 
-# In[53]:
+# In[11]:
 
 
 y_train = y_train.reshape(-1, 1)
@@ -269,7 +270,7 @@ y_val = y_val.reshape(-1, 1)
 y_test = y_test.reshape(-1, 1)
 
 
-# In[54]:
+# In[12]:
 
 
 hidden_options = [10, 20, 30]
@@ -280,7 +281,7 @@ best_hidden = None
 best_lr = None
 
 
-# In[55]:
+# In[13]:
 
 
 for hidden_size in hidden_options:
@@ -323,7 +324,7 @@ for hidden_size in hidden_options:
             best_lr = lr
 
 
-# In[56]:
+# In[14]:
 
 
 print("\nMelhores hiperparâmetros:")
@@ -334,7 +335,7 @@ print("Best Validation RMSE:", best_rmse)
 
 # ### Letra B
 
-# In[57]:
+# In[15]:
 
 
 y_train_pred = best_model.predict(X_train)
@@ -342,7 +343,7 @@ y_train_pred = best_model.predict(X_train)
 y_test_pred = best_model.predict(X_test)
 
 
-# In[58]:
+# In[16]:
 
 
 y_val_pred = best_model.predict(X_val)
@@ -356,7 +357,7 @@ print("MAE :", mae(y_val, y_val_pred))
 print("MRE :", mre(y_val, y_val_pred))
 
 
-# In[59]:
+# In[17]:
 
 
 print("\n==============================")
@@ -368,7 +369,7 @@ print("MAE :", mae(y_train, y_train_pred))
 print("MRE :", mre(y_train, y_train_pred))
 
 
-# In[60]:
+# In[18]:
 
 
 print("\n==============================")
@@ -380,7 +381,7 @@ print("MAE :", mae(y_test, y_test_pred))
 print("MRE :", mre(y_test, y_test_pred))
 
 
-# In[61]:
+# In[19]:
 
 
 plt.figure(figsize=(10, 6))
@@ -410,7 +411,7 @@ plt.show()
 
 # # Questão 02
 
-# In[62]:
+# In[20]:
 
 
 vehicle = np.loadtxt("vehicle.csv", delimiter=",", skiprows=1)
@@ -419,7 +420,7 @@ X = vehicle[:, :18]
 y = vehicle[:, 18]
 
 
-# In[64]:
+# In[21]:
 
 
 def accuracy_score(y_true, y_pred):
@@ -427,7 +428,7 @@ def accuracy_score(y_true, y_pred):
     return np.mean(y_true == y_pred)
 
 
-# In[65]:
+# In[22]:
 
 
 def precision_score_macro(y_true, y_pred):
@@ -450,7 +451,7 @@ def precision_score_macro(y_true, y_pred):
     return np.mean(precisions)
 
 
-# In[66]:
+# In[23]:
 
 
 def recall_score_macro(y_true, y_pred):
@@ -473,7 +474,7 @@ def recall_score_macro(y_true, y_pred):
     return np.mean(recalls)
 
 
-# In[67]:
+# In[24]:
 
 
 def f1_score_macro(y_true, y_pred):
@@ -488,7 +489,7 @@ def f1_score_macro(y_true, y_pred):
     return 2 * (precision * recall) / (precision + recall)
 
 
-# In[68]:
+# In[25]:
 
 
 def confusion_matrix_multiclass(y_true, y_pred, num_classes):
@@ -507,7 +508,7 @@ def confusion_matrix_multiclass(y_true, y_pred, num_classes):
 
 # ### Letra A
 
-# In[69]:
+# In[26]:
 
 
 vehicle = np.loadtxt(
@@ -521,7 +522,7 @@ X = vehicle[:, :18].astype(float)
 y = vehicle[:, 18]
 
 
-# In[70]:
+# In[27]:
 
 
 classes = np.unique(y)
@@ -539,7 +540,7 @@ y = np.array([class_to_index[label] for label in y])
 num_classes = len(classes)
 
 
-# In[71]:
+# In[28]:
 
 
 def one_hot(y, num_classes):
@@ -551,7 +552,7 @@ def one_hot(y, num_classes):
     return onehot
 
 
-# In[72]:
+# In[29]:
 
 
 class MLPClassifier:
@@ -768,7 +769,7 @@ class MLPClassifier:
         return np.argmax(probs, axis=1)
 
 
-# In[73]:
+# In[30]:
 
 
 X_temp, X_test, y_temp, y_test = train_test_split(
@@ -786,7 +787,7 @@ X_train, X_val, y_train, y_val = train_test_split(
 )
 
 
-# In[74]:
+# In[31]:
 
 
 scaler = StandardScaler()
@@ -804,7 +805,7 @@ y_val_onehot = one_hot(y_val, num_classes)
 y_test_onehot = one_hot(y_test, num_classes)
 
 
-# In[75]:
+# In[32]:
 
 
 hidden_options = [10, 20, 30]
@@ -820,7 +821,7 @@ best_hidden = None
 best_lr = None
 
 
-# In[ ]:
+# In[33]:
 
 
 for hidden_size in hidden_options:
@@ -872,7 +873,7 @@ for hidden_size in hidden_options:
             best_lr = lr
 
 
-# In[77]:
+# In[34]:
 
 
 print("\n===================================")
@@ -888,7 +889,7 @@ print("Best Validation Accuracy:", best_acc)
 
 # ### Letra B
 
-# In[78]:
+# In[35]:
 
 
 y_train_pred = best_model.predict(X_train)
@@ -898,7 +899,7 @@ y_val_pred = best_model.predict(X_val)
 y_test_pred = best_model.predict(X_test)
 
 
-# In[79]:
+# In[36]:
 
 
 def print_metrics(y_true, y_pred, name):
@@ -928,7 +929,7 @@ def print_metrics(y_true, y_pred, name):
     )
 
 
-# In[ ]:
+# In[37]:
 
 
 print_metrics(
@@ -937,11 +938,19 @@ print_metrics(
     "TREINO"
 )
 
+
+# In[38]:
+
+
 print_metrics(
     y_val,
     y_val_pred,
     "VALIDAÇÃO"
 )
+
+
+# In[39]:
+
 
 print_metrics(
     y_test,
@@ -950,7 +959,7 @@ print_metrics(
 )
 
 
-# In[81]:
+# In[40]:
 
 
 cm = confusion_matrix_multiclass(
@@ -960,7 +969,7 @@ cm = confusion_matrix_multiclass(
 )
 
 
-# In[82]:
+# In[41]:
 
 
 plt.figure(figsize=(8, 6))
@@ -1004,7 +1013,7 @@ plt.tight_layout()
 plt.show()
 
 
-# In[83]:
+# In[42]:
 
 
 plt.figure(figsize=(10, 6))
